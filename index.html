@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SOLID 對或錯小遊戲</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --card: #111831;
+        --ink: #e8ecf3;
+        --muted: #9fb2d0;
+        --ok: #2ecc71;
+        --bad: #ff6b6b;
+        --accent: #74b0ff;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, "Noto Sans TC", sans-serif;
+        background: radial-gradient(
+              1200px 800px at 80% -10%,
+              #1a2550,
+              transparent
+            )
+            no-repeat,
+          var(--bg);
+        color: var(--ink);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .card {
+        width: min(720px, 92vw);
+        background: linear-gradient(180deg, #131c39, #0f162e);
+        border: 1px solid #22305c;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        padding: 28px 24px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 8px;
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 18px;
+      }
+      .q-wrap {
+        background: var(--card);
+        border: 1px solid #24345f;
+        border-radius: 16px;
+        padding: 20px;
+        margin: 16px 0 6px;
+      }
+      .q-title {
+        font-size: 18px;
+        margin: 0 0 10px;
+      }
+      .q-text {
+        font-size: 22px;
+        line-height: 1.4;
+        letter-spacing: 0.3px;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 6px;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+      }
+      button {
+        appearance: none;
+        border: none;
+        border-radius: 14px;
+        padding: 14px 18px;
+        font-size: 16px;
+        cursor: pointer;
+        background: #1b2446;
+        color: #dfe7ff;
+        border: 1px solid #2b3a72;
+        transition: transform 0.06s ease, background 0.2s;
+      }
+      button:hover {
+        transform: translateY(-1px);
+        background: #212d5a;
+      }
+      .true {
+        background: #163e2f;
+        border-color: #246b4f;
+      }
+      .false {
+        background: #4a1c25;
+        border-color: #7a2f3e;
+      }
+      .next {
+        background: #1e2b55;
+        border-color: #3853a2;
+      }
+      .pill {
+        display: inline-block;
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid #2c3c6d;
+        color: #cfe1ff;
+        background: #142046;
+        margin-right: 8px;
+      }
+      .result {
+        margin-top: 14px;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 15px;
+        border: 1px solid #283863;
+      }
+      .ok {
+        color: var(--ok);
+      }
+      .bad {
+        color: var(--bad);
+      }
+      .footer {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .kbd {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        border: 1px solid #31467d;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: #121a36;
+        color: #cfe1ff;
+      }
+      .score {
+        font-weight: 700;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card" role="region" aria-live="polite">
+      <h1>SOLID 對或錯小遊戲</h1>
+      <div class="sub">
+        判斷下列敘述是否正確（對 / 錯）。共 <span id="total">5</span> 題。
+      </div>
+
+      <div class="q-wrap">
+        <div class="q-title">
+          <span class="pill">第 <span id="idx">1</span> 題</span>
+          <span class="pill"
+            >目前分數：<span class="score" id="score">0</span></span
+          >
+        </div>
+        <div id="q" class="q-text">題目載入中…</div>
+        <div id="hint" class="hint"></div>
+
+        <div class="actions">
+          <button class="true" id="btn-true" aria-label="選擇 對">
+            ✅ 對（T）
+          </button>
+          <button class="false" id="btn-false" aria-label="選擇 錯">
+            ❌ 錯（F）
+          </button>
+          <button class="next" id="btn-next" style="display: none">
+            下一題 →
+          </button>
+          <button id="btn-retry" style="display: none">再玩一次</button>
+        </div>
+
+        <div id="feedback" class="result" style="display: none"></div>
+      </div>
+
+      <div class="footer">
+        小撇步：可用鍵盤 <span class="kbd">T</span> /
+        <span class="kbd">F</span> 作答，<span class="kbd">Enter</span> 下一題。
+      </div>
+    </main>
+
+    <script>
+      // 題庫（依你的清單；其中 OPC、依賴相反 為刻意設置的錯題）
+      const QUESTIONS = [
+        {
+          text: "SRP：單一職責原則",
+          isTrue: true,
+          explain:
+            "正確。Single Responsibility Principle：一個模組僅有一個變動理由。",
+        },
+        {
+          text: "OPC：開放 封閉原則",
+          isTrue: false,
+          explain:
+            "錯誤。縮寫應為 OCP（Open–Closed Principle）。對擴充開放、對修改封閉。",
+        },
+        {
+          text: "LSP：Liskov 替換原則",
+          isTrue: true,
+          explain:
+            "正確。Liskov Substitution Principle：子型別必須可替換其父型別而不破壞正確性。",
+        },
+        {
+          text: "ISP：介面隔離原則",
+          isTrue: true,
+          explain:
+            "正確。Interface Segregation Principle：傾向建立多個專一的小介面，而非龐大雜湊介面。",
+        },
+        {
+          text: "DIP：依賴相反原則",
+          isTrue: false,
+          explain:
+            "錯誤。應為『依賴反轉原則』（Dependency Inversion Principle）：高層不依賴低層，兩者共同依賴抽象。",
+        },
+      ];
+
+      // 遊戲狀態
+      let order = [];
+      let i = 0;
+      let score = 0;
+      let locked = false;
+
+      const elQ = document.getElementById("q");
+      const elIdx = document.getElementById("idx");
+      const elScore = document.getElementById("score");
+      const elTotal = document.getElementById("total");
+      const elFeedback = document.getElementById("feedback");
+      const elNext = document.getElementById("btn-next");
+      const elRetry = document.getElementById("btn-retry");
+      const elHint = document.getElementById("hint");
+      const btnTrue = document.getElementById("btn-true");
+      const btnFalse = document.getElementById("btn-false");
+
+      elTotal.textContent = QUESTIONS.length;
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let j = a.length - 1; j > 0; j--) {
+          const k = Math.floor(Math.random() * (j + 1));
+          [a[j], a[k]] = [a[k], a[j]];
+        }
+        return a;
+      }
+
+      function init() {
+        order = shuffle([...Array(QUESTIONS.length).keys()]);
+        i = 0;
+        score = 0;
+        locked = false;
+        elScore.textContent = score;
+        elFeedback.style.display = "none";
+        elNext.style.display = "none";
+        elRetry.style.display = "none";
+        btnTrue.disabled = false;
+        btnFalse.disabled = false;
+        render();
+      }
+
+      function render() {
+        const q = QUESTIONS[order[i]];
+        elIdx.textContent = i + 1;
+        elQ.textContent = q.text;
+        elHint.textContent = "判斷上面的敘述是否正確。";
+        elFeedback.style.display = "none";
+        elNext.style.display = "none";
+        locked = false;
+      }
+
+      function answer(userIsTrue) {
+        if (locked) return;
+        locked = true;
+        const q = QUESTIONS[order[i]];
+        const correct = userIsTrue === q.isTrue;
+        if (correct) {
+          score++;
+          elScore.textContent = score;
+        }
+
+        elFeedback.style.display = "block";
+        elFeedback.innerHTML = correct
+          ? `✅ <span class="ok">答對了！</span> ${q.explain}`
+          : `❌ <span class="bad">答錯了。</span> ${q.explain}`;
+
+        // 到尾題就顯示總結
+        if (i === order.length - 1) {
+          elNext.style.display = "none";
+          elRetry.style.display = "inline-block";
+          elHint.textContent = `完成！最終分數：${score} / ${QUESTIONS.length}`;
+          btnTrue.disabled = true;
+          btnFalse.disabled = true;
+        } else {
+          elNext.style.display = "inline-block";
+        }
+      }
+
+      btnTrue.addEventListener("click", () => answer(true));
+      btnFalse.addEventListener("click", () => answer(false));
+      elNext.addEventListener("click", () => {
+        i++;
+        render();
+      });
+      elRetry.addEventListener("click", init);
+
+      // 鍵盤操作：T/F 作答，Enter 下一題
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "t" || e.key === "T") {
+          answer(true);
+        } else if (e.key === "f" || e.key === "F") {
+          answer(false);
+        } else if (e.key === "Enter" && elNext.style.display !== "none") {
+          i++;
+          render();
+        }
+      });
+
+      init();
+    </script>
+  </body>
+</html>
