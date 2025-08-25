@@ -1,0 +1,62 @@
+[
+  {
+    "id": "srp-violate-report",
+    "text": "這段類別同時負責『資料格式化』『儲存』兩件事，屬於什麼原則的違反？",
+    "code": {
+      "ts": "class Report {\n  constructor(private data: any) {}\n  renderHTML(): string {\n    return `<h1>Report</h1><pre>${JSON.stringify(this.data, null, 2)}</pre>`;\n  }\n  saveToDB(conn: DB): Promise<void> {\n    return conn.insert('reports', this.data);\n  }\n}",
+      "py": "class Report:\n    def __init__(self, data):\n        self.data = data\n    def render_html(self) -> str:\n        import json\n        return f\"<h1>Report</h1><pre>{json.dumps(self.data, indent=2)}</pre>\"\n    def save_to_db(self, conn):\n        conn.insert('reports', self.data)",
+      "cs": "class Report {\n    private object _data;\n    public Report(object data) { _data = data; }\n    public string RenderHtml() => $\"<h1>Report</h1><pre>{_data}</pre>\";\n    public Task SaveToDb(IDb conn) => conn.InsertAsync(\"reports\", _data);\n}"
+    },
+    "options": ["SRP：單一職責原則", "ISP：介面隔離原則", "DIP：依賴反轉原則"],
+    "answer": 0,
+    "explain": "違反 SRP。呈現與儲存是兩個不同的變動理由，應拆分模組。"
+  },
+  {
+    "id": "ocp-strategy-discount",
+    "text": "以策略模式新增折扣規則而不改動既有流程，實踐了哪個原則？",
+    "code": {
+      "ts": "interface Discount { calc(a: number): number }\nclass NoDiscount implements Discount { calc(a:number){ return a } }\nclass VIPDiscount implements Discount { calc(a:number){ return a*0.9 } }\nclass SeasonalDiscount implements Discount { calc(a:number){ return a*0.85 } }\nclass Checkout {\n  constructor(private d: Discount) {}\n  total(a:number){ return this.d.calc(a) }\n}",
+      "py": "from abc import ABC, abstractmethod\nclass Discount(ABC):\n    @abstractmethod\n    def calc(self, a: float) -> float: ...\nclass NoDiscount(Discount):\n    def calc(self, a: float) -> float: return a\nclass VIPDiscount(Discount):\n    def calc(self, a: float) -> float: return a * 0.9\nclass SeasonalDiscount(Discount):\n    def calc(self, a: float) -> float: return a * 0.85\nclass Checkout:\n    def __init__(self, d: Discount): self.d = d\n    def total(self, a: float) -> float: return self.d.calc(a)",
+      "cs": "public interface IDiscount { decimal Calc(decimal a); }\npublic class NoDiscount : IDiscount { public decimal Calc(decimal a)=>a; }\npublic class VIPDiscount : IDiscount { public decimal Calc(decimal a)=>a*0.9m; }\npublic class SeasonalDiscount : IDiscount { public decimal Calc(decimal a)=>a*0.85m; }\npublic class Checkout {\n  private readonly IDiscount _d;\n  public Checkout(IDiscount d){ _d=d; }\n  public decimal Total(decimal a)=>_d.Calc(a);\n}"
+    },
+    "options": ["OCP：開放封閉原則", "SRP：單一職責原則", "LSP：替換原則"],
+    "answer": 0,
+    "explain": "OCP：對擴充開放、對修改封閉；新增規則靠擴展，不動既有計算流程。"
+  },
+  {
+    "id": "lsp-rectangle-square",
+    "text": "哪個原則被這個 Rectangle/Square 設計所違反？",
+    "code": {
+      "ts": "class Rectangle {\n  protected width=0; protected height=0;\n  setWidth(w:number){ this.width=w }\n  setHeight(h:number){ this.height=h }\n  area(){ return this.width*this.height }\n}\nclass Square extends Rectangle {\n  setWidth(w:number){ this.width=this.height=w }\n  setHeight(h:number){ this.width=this.height=h }\n}\nfunction resizeTo(rect: Rectangle){\n  rect.setWidth(5); rect.setHeight(4);\n  if(rect.area()!==20) throw new Error('Unexpected');\n}",
+      "py": "class Rectangle:\n    def __init__(self):\n        self.width = 0; self.height = 0\n    def set_width(self, w): self.width = w\n    def set_height(self, h): self.height = h\n    def area(self): return self.width * self.height\nclass Square(Rectangle):\n    def set_width(self, w): self.width = self.height = w\n    def set_height(self, h): self.width = self.height = h\n",
+      "cs": "class Rectangle {\n    protected int Width, Height;\n    public void SetWidth(int w)=>Width=w;\n    public void SetHeight(int h)=>Height=h;\n    public int Area()=>Width*Height;\n}\nclass Square: Rectangle {\n    public new void SetWidth(int w){ Width=Height=w; }\n    public new void SetHeight(int h){ Width=Height=h; }\n}"
+    },
+    "options": ["LSP：Liskov 替換原則", "DIP：依賴反轉原則", "ISP：介面隔離原則"],
+    "answer": 0,
+    "explain": "違反 LSP。子型別（Square）替換父型別（Rectangle）時破壞語意與不變式。"
+  },
+  {
+    "id": "isp-fat-interface",
+    "text": "這個『肥大介面』讓實作者被迫實作用不到的方法，違反了哪個原則？",
+    "code": {
+      "ts": "interface MultiFunctionDevice {\n  print(doc:string):void\n  scan():string\n  fax(num:string, doc:string):void\n}\nclass SimplePrinter implements MultiFunctionDevice {\n  print(d:string){ console.log('print', d) }\n  scan(){ throw new Error('不支援') }\n  fax(n:string,d:string){ throw new Error('不支援') }\n}",
+      "py": "from abc import ABC, abstractmethod\nclass MultiFunctionDevice(ABC):\n    @abstractmethod\n    def print(self, doc: str): ...\n    @abstractmethod\n    def scan(self) -> str: ...\n    @abstractmethod\n    def fax(self, number: str, doc: str): ...\nclass SimplePrinter(MultiFunctionDevice):\n    def print(self, doc: str): print('print', doc)\n    def scan(self) -> str: raise NotImplementedError('不支援')\n    def fax(self, number: str, doc: str): raise NotImplementedError('不支援')",
+      "cs": "public interface IMultiFunctionDevice {\n  void Print(string doc);\n  string Scan();\n  void Fax(string number, string doc);\n}\npublic class SimplePrinter : IMultiFunctionDevice {\n  public void Print(string doc){ /* ... */ }\n  public string Scan(){ throw new NotSupportedException(); }\n  public void Fax(string n, string d){ throw new NotSupportedException(); }\n}"
+    },
+    "options": ["ISP：介面隔離原則", "SRP：單一職責原則", "OCP：開放封閉原則"],
+    "answer": 0,
+    "explain": "違反 ISP。應拆成多個專一小介面（IPrinter/IScanner/IFaxer），客戶端只依賴所需。"
+  },
+  {
+    "id": "dip-inject-gateway",
+    "text": "高層服務不直接依賴具體實作，而是依賴抽象並以注入提供，體現了哪個原則？",
+    "code": {
+      "ts": "interface PaymentGateway { pay(cents:number):Promise<void> }\nclass StripeGateway implements PaymentGateway{ async pay(c:number){ /* ... */ } }\nclass LinePayGateway implements PaymentGateway{ async pay(c:number){ /* ... */ } }\nclass OrderService {\n  constructor(private g: PaymentGateway) {}\n  async checkout(amount:number){ await this.g.pay(amount) }\n}",
+      "py": "from abc import ABC, abstractmethod\nclass PaymentGateway(ABC):\n    @abstractmethod\n    def pay(self, cents: int) -> None: ...\nclass StripeGateway(PaymentGateway):\n    def pay(self, cents: int) -> None: pass\nclass LinePayGateway(PaymentGateway):\n    def pay(self, cents: int) -> None: pass\nclass OrderService:\n    def __init__(self, g: PaymentGateway): self.g = g\n    def checkout(self, amount: int) -> None: self.g.pay(amount)",
+      "cs": "public interface IPaymentGateway { Task Pay(int cents); }\npublic class StripeGateway : IPaymentGateway { public Task Pay(int cents)=>Task.CompletedTask; }\npublic class LinePayGateway : IPaymentGateway { public Task Pay(int cents)=>Task.CompletedTask; }\npublic class OrderService {\n  private readonly IPaymentGateway _g;\n  public OrderService(IPaymentGateway g){ _g=g; }\n  public Task Checkout(int amount)=>_g.Pay(amount);\n}"
+    },
+    "options": ["DIP：依賴反轉原則", "LSP：替換原則", "SRP：單一職責原則"],
+    "answer": 0,
+    "explain": "DIP。高層與低層共同依賴抽象；以注入切換 Stripe/LinePay 而不動高層。"
+  }
+]

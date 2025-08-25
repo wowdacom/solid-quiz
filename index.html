@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>SOLID 三選一小測驗</title>
+    <title>SOLID 程式碼情境題｜三選一小測驗（多語言）</title>
     <meta
       name="description"
-      content="以三選一題目快速檢核你對 SOLID 原則（SRP、OCP、LSP、ISP、DIP）的理解。"
+      content="閱讀程式碼片段，判斷體現或違反的是哪一個 SOLID 原則（SRP、OCP、LSP、ISP、DIP）。支援 TypeScript / Python / C# 切換。"
     />
     <style>
       :root {
@@ -42,7 +42,7 @@
         padding: 24px;
       }
       .card {
-        width: min(820px, 92vw);
+        width: min(980px, 94vw);
         background: linear-gradient(180deg, #131c39, #0f162e);
         border: 1px solid #22305c;
         border-radius: 20px;
@@ -57,6 +57,21 @@
         color: var(--muted);
         font-size: 14px;
         margin: 0 0 16px;
+      }
+      .toolbar-top {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin: 0 0 12px;
+      }
+      .select {
+        background: #0f1836;
+        color: #dfe7ff;
+        border: 1px solid #2b3a72;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 14px;
       }
       .qwrap {
         background: var(--card);
@@ -80,10 +95,25 @@
         background: #142046;
       }
       .qtext {
-        font-size: 22px;
+        font-size: 18px;
         line-height: 1.5;
         letter-spacing: 0.2px;
-        margin-top: 6px;
+        margin-top: 2px;
+      }
+      pre {
+        margin: 12px 0 0;
+        background: #0c1329;
+        border: 1px solid #273867;
+        border-radius: 12px;
+        padding: 12px;
+        overflow: auto;
+        color: #dfe7ff;
+        font-size: 14px;
+        line-height: 1.5;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      code {
+        white-space: pre;
       }
       .options {
         display: grid;
@@ -91,7 +121,7 @@
         gap: 10px;
         margin-top: 14px;
       }
-      @media (min-width: 560px) {
+      @media (min-width: 680px) {
         .options {
           grid-template-columns: 1fr 1fr 1fr;
         }
@@ -179,25 +209,42 @@
         border: 0;
         white-space: nowrap;
       }
+      .warn {
+        color: #ffd166;
+        font-size: 13px;
+      }
     </style>
   </head>
   <body>
     <main class="card" role="region" aria-live="polite">
-      <h1>SOLID 三選一小測驗</h1>
+      <h1>SOLID 程式碼情境題｜三選一小測驗</h1>
       <p class="sub">
-        從三個選項中選出**最符合題意的原則**。共 <span id="total">5</span> 題。
+        閱讀程式碼片段，從三個選項中選出最符合的 SOLID
+        原則。可切換語言（TypeScript / Python / C#）。
       </p>
+
+      <div class="toolbar-top">
+        <label for="lang" class="pill" aria-label="目前語言">語言</label>
+        <select id="lang" class="select" title="選擇顯示程式碼的語言">
+          <option value="ts">TypeScript</option>
+          <option value="py">Python</option>
+          <option value="cs">C#</option>
+        </select>
+        <span id="lang-note" class="warn" aria-live="polite"></span>
+      </div>
 
       <section class="qwrap" aria-labelledby="q-title">
         <div class="topbar">
           <span class="pill">第 <span id="idx">1</span> 題</span>
           <span class="pill"
-            >分數：<span class="score" id="score">0</span></span
+            >分數：<span class="score" id="score">0</span> /
+            <span id="total">0</span></span
           >
         </div>
 
         <h2 id="q-title" class="sr-only">題目</h2>
-        <div id="q" class="qtext">題目載入中…</div>
+        <div id="q" class="qtext">載入題目中…</div>
+        <pre><code id="code"></code></pre>
 
         <div id="options" class="options" role="group" aria-label="選項"></div>
 
@@ -235,76 +282,36 @@
       </section>
 
       <div class="footer">
-        小提醒：選項文字含縮寫與全名，例如
-        <span class="tag">SRP：單一職責原則</span>。
+        小提醒：有些題目是「違反某原則」的反例，請根據語意與程式碼語境做判斷。
       </div>
     </main>
 
     <script>
-      // 題庫（5 題 × 3 選 1），answer 為正確選項索引（0/1/2）
-      const QUESTIONS = [
-        {
-          text: "一個模組應該只有一個變動的理由。",
-          options: ["SRP：單一職責原則", "LSP：替換原則", "DIP：依賴反轉原則"],
-          answer: 0,
-          explain:
-            "這是 SRP（Single Responsibility Principle）：單一職責，一個模組只專注一件事。",
-        },
-        {
-          text: "軟體應對擴充開放、對修改封閉（以擴展取代更動舊碼）。",
-          options: [
-            "OCP：開放封閉原則",
-            "ISP：介面隔離原則",
-            "SRP：單一職責原則",
-          ],
-          answer: 0,
-          explain:
-            "這是 OCP（Open–Closed Principle）：用擴展替代改舊碼，降低回歸風險。",
-        },
-        {
-          text: "子類別必須能替代父類別而不破壞既有正確性。",
-          options: ["DIP：依賴反轉原則", "LSP：替換原則", "ISP：介面隔離原則"],
-          answer: 1,
-          explain:
-            "這是 LSP（Liskov Substitution Principle）：任何用父型別的地方都可安全替換為子型別。",
-        },
-        {
-          text: "不要強迫使用者依賴不需要的方法，介面應小而專注。",
-          options: [
-            "ISP：介面隔離原則",
-            "SRP：單一職責原則",
-            "OCP：開放封閉原則",
-          ],
-          answer: 0,
-          explain:
-            "這是 ISP（Interface Segregation Principle）：傾向多個專一小介面，而非巨型介面。",
-        },
-        {
-          text: "高層模組與低層模組都應依賴抽象，而非彼此的具體實作。",
-          options: ["DIP：依賴反轉原則", "LSP：替換原則", "SRP：單一職責原則"],
-          answer: 0,
-          explain:
-            "這是 DIP（Dependency Inversion Principle）：依賴抽象、以介面/抽象層解耦高低層。",
-        },
-      ];
+      // 安全轉義
+      const escapeHTML = (s) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-      // 狀態
+      // 全域狀態
+      let ALL = []; // 原始題庫（含多語言 code）
+      let QUESTIONS = []; // 根據語言過濾後的實際作答題庫
       let order = [],
         i = 0,
         score = 0,
         locked = false;
+      let currentLang = "ts";
 
       // DOM
       const elTotal = document.getElementById("total");
       const elIdx = document.getElementById("idx");
       const elScore = document.getElementById("score");
       const elQ = document.getElementById("q");
+      const elCode = document.getElementById("code");
       const elOptions = document.getElementById("options");
       const elFeedback = document.getElementById("feedback");
       const elNext = document.getElementById("btn-next");
       const elRetry = document.getElementById("btn-retry");
-
-      elTotal.textContent = QUESTIONS.length;
+      const elLang = document.getElementById("lang");
+      const elLangNote = document.getElementById("lang-note");
 
       function shuffle(arr) {
         const a = arr.slice();
@@ -315,15 +322,47 @@
         return a;
       }
 
-      function init() {
+      function buildQuestionsForLang(lang) {
+        const filtered = ALL.filter((q) => q.code && q.code[lang]);
+        if (filtered.length === 0) {
+          return null;
+        }
+        // 轉換：只保留當前語言需用到的欄位
+        return filtered.map((q) => ({
+          id: q.id,
+          text: q.text,
+          code: q.code[lang],
+          options: q.options,
+          answer: q.answer,
+          explain: q.explain,
+        }));
+      }
+
+      async function load() {
+        const res = await fetch("questions.json", { cache: "no-store" });
+        ALL = await res.json();
+
+        const initQ =
+          buildQuestionsForLang(currentLang) || buildQuestionsForLang("ts");
+        if (!initQ) {
+          elQ.textContent = "找不到題庫，請確認 questions.json 格式。";
+          return;
+        }
+        QUESTIONS = initQ;
+        startGame();
+      }
+
+      function startGame() {
         order = shuffle([...Array(QUESTIONS.length).keys()]);
         i = 0;
         score = 0;
         locked = false;
         elScore.textContent = score;
+        elTotal.textContent = QUESTIONS.length;
         elFeedback.style.display = "none";
         elNext.style.display = "none";
         elRetry.style.display = "none";
+        elLangNote.textContent = "";
         render();
       }
 
@@ -331,8 +370,8 @@
         const q = QUESTIONS[order[i]];
         elIdx.textContent = i + 1;
         elQ.textContent = q.text;
+        elCode.innerHTML = escapeHTML(q.code);
 
-        // 產生選項（同時打亂顯示順序，但保留正確索引映射）
         elOptions.innerHTML = "";
         const optIdx = shuffle([0, 1, 2]);
         optIdx.forEach((displayIdx, slot) => {
@@ -382,14 +421,27 @@
         i++;
         render();
       });
-      elRetry.addEventListener("click", init);
+      elRetry.addEventListener("click", startGame);
+
+      // 語言切換：若新語言題數不同，會重新洗牌並重置分數
+      elLang.addEventListener("change", () => {
+        const lang = elLang.value;
+        const nextSet = buildQuestionsForLang(lang);
+        if (!nextSet) {
+          elLangNote.textContent = "此語言沒有可用題目，已維持目前語言。";
+          elLang.value = currentLang;
+          return;
+        }
+        currentLang = lang;
+        QUESTIONS = nextSet;
+        startGame();
+      });
 
       // 鍵盤操作：1/2/3 作答、Enter 下一題、R 重玩
       window.addEventListener("keydown", (e) => {
         const key = e.key.toLowerCase();
         if (!locked && (key === "1" || key === "2" || key === "3")) {
           const idxMap = { 1: 0, 2: 1, 3: 2 };
-          // 因為畫面選項已被打亂，需依顯示順序找對應的 displayIdx
           const displayed = [...elOptions.querySelectorAll("button.opt")];
           const btn = displayed[idxMap[key]];
           if (btn) {
@@ -402,7 +454,7 @@
         }
       });
 
-      init();
+      load();
     </script>
   </body>
 </html>
