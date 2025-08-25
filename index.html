@@ -3,7 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>SOLID 對或錯小遊戲</title>
+    <title>SOLID 三選一小測驗</title>
+    <meta
+      name="description"
+      content="以三選一題目快速檢核你對 SOLID 原則（SRP、OCP、LSP、ISP、DIP）的理解。"
+    />
     <style>
       :root {
         --bg: #0b1020;
@@ -13,6 +17,9 @@
         --ok: #2ecc71;
         --bad: #ff6b6b;
         --accent: #74b0ff;
+        --btn: #1b2446;
+        --btn-b: #2b3a72;
+        --hover: #212d5a;
       }
       html,
       body {
@@ -35,7 +42,7 @@
         padding: 24px;
       }
       .card {
-        width: min(720px, 92vw);
+        width: min(820px, 92vw);
         background: linear-gradient(180deg, #131c39, #0f162e);
         border: 1px solid #22305c;
         border-radius: 20px;
@@ -44,67 +51,24 @@
       }
       h1 {
         font-size: 22px;
-        margin: 0 0 8px;
+        margin: 0 0 6px;
       }
       .sub {
         color: var(--muted);
         font-size: 14px;
-        margin-bottom: 18px;
+        margin: 0 0 16px;
       }
-      .q-wrap {
+      .qwrap {
         background: var(--card);
         border: 1px solid #24345f;
         border-radius: 16px;
         padding: 20px;
-        margin: 16px 0 6px;
       }
-      .q-title {
-        font-size: 18px;
-        margin: 0 0 10px;
-      }
-      .q-text {
-        font-size: 22px;
-        line-height: 1.4;
-        letter-spacing: 0.3px;
-      }
-      .hint {
-        color: var(--muted);
-        font-size: 13px;
-        margin-top: 6px;
-      }
-      .actions {
+      .topbar {
         display: flex;
-        gap: 12px;
-        margin-top: 18px;
+        gap: 8px;
         flex-wrap: wrap;
-      }
-      button {
-        appearance: none;
-        border: none;
-        border-radius: 14px;
-        padding: 14px 18px;
-        font-size: 16px;
-        cursor: pointer;
-        background: #1b2446;
-        color: #dfe7ff;
-        border: 1px solid #2b3a72;
-        transition: transform 0.06s ease, background 0.2s;
-      }
-      button:hover {
-        transform: translateY(-1px);
-        background: #212d5a;
-      }
-      .true {
-        background: #163e2f;
-        border-color: #246b4f;
-      }
-      .false {
-        background: #4a1c25;
-        border-color: #7a2f3e;
-      }
-      .next {
-        background: #1e2b55;
-        border-color: #3853a2;
+        margin-bottom: 10px;
       }
       .pill {
         display: inline-block;
@@ -114,12 +78,43 @@
         border: 1px solid #2c3c6d;
         color: #cfe1ff;
         background: #142046;
-        margin-right: 8px;
       }
-      .result {
+      .qtext {
+        font-size: 22px;
+        line-height: 1.5;
+        letter-spacing: 0.2px;
+        margin-top: 6px;
+      }
+      .options {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
         margin-top: 14px;
+      }
+      @media (min-width: 560px) {
+        .options {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+      }
+      button.opt {
+        text-align: left;
+        border: 1px solid var(--btn-b);
+        background: var(--btn);
+        color: #dfe7ff;
         border-radius: 12px;
         padding: 12px 14px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.06s ease, background 0.2s;
+      }
+      button.opt:hover {
+        transform: translateY(-1px);
+        background: var(--hover);
+      }
+      .result {
+        margin-top: 12px;
+        border-radius: 10px;
+        padding: 10px 12px;
         font-size: 15px;
         border: 1px solid #283863;
       }
@@ -129,10 +124,31 @@
       .bad {
         color: var(--bad);
       }
-      .footer {
-        margin-top: 18px;
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        border: 1px solid var(--btn-b);
+        border-radius: 12px;
+        padding: 10px 14px;
+        background: var(--btn);
+        color: #dfe7ff;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: var(--hover);
+      }
+      .help {
         color: var(--muted);
         font-size: 13px;
+        margin-top: 10px;
+      }
+      .score {
+        color: var(--accent);
+        font-weight: 700;
       }
       .kbd {
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -142,102 +158,151 @@
         background: #121a36;
         color: #cfe1ff;
       }
-      .score {
-        font-weight: 700;
-        color: var(--accent);
+      .footer {
+        margin-top: 16px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .tag {
+        color: #cfe1ff;
+        font-size: 12px;
+        opacity: 0.9;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 1, 1);
+        border: 0;
+        white-space: nowrap;
       }
     </style>
   </head>
   <body>
     <main class="card" role="region" aria-live="polite">
-      <h1>SOLID 對或錯小遊戲</h1>
-      <div class="sub">
-        判斷下列敘述是否正確（對 / 錯）。共 <span id="total">5</span> 題。
-      </div>
+      <h1>SOLID 三選一小測驗</h1>
+      <p class="sub">
+        從三個選項中選出**最符合題意的原則**。共 <span id="total">5</span> 題。
+      </p>
 
-      <div class="q-wrap">
-        <div class="q-title">
+      <section class="qwrap" aria-labelledby="q-title">
+        <div class="topbar">
           <span class="pill">第 <span id="idx">1</span> 題</span>
           <span class="pill"
-            >目前分數：<span class="score" id="score">0</span></span
+            >分數：<span class="score" id="score">0</span></span
           >
         </div>
-        <div id="q" class="q-text">題目載入中…</div>
-        <div id="hint" class="hint"></div>
 
-        <div class="actions">
-          <button class="true" id="btn-true" aria-label="選擇 對">
-            ✅ 對（T）
-          </button>
-          <button class="false" id="btn-false" aria-label="選擇 錯">
-            ❌ 錯（F）
-          </button>
-          <button class="next" id="btn-next" style="display: none">
-            下一題 →
-          </button>
-          <button id="btn-retry" style="display: none">再玩一次</button>
-        </div>
+        <h2 id="q-title" class="sr-only">題目</h2>
+        <div id="q" class="qtext">題目載入中…</div>
+
+        <div id="options" class="options" role="group" aria-label="選項"></div>
 
         <div id="feedback" class="result" style="display: none"></div>
-      </div>
+
+        <div class="toolbar">
+          <button
+            id="btn-next"
+            class="btn"
+            style="display: none"
+            aria-label="下一題"
+          >
+            下一題 →
+          </button>
+          <button
+            id="btn-retry"
+            class="btn"
+            style="display: none"
+            aria-label="再玩一次"
+          >
+            再玩一次
+          </button>
+        </div>
+
+        <div class="help">
+          快捷鍵：<span class="kbd">1</span>/<span class="kbd">2</span>/<span
+            class="kbd"
+            >3</span
+          >
+          作答， <span class="kbd">Enter</span> 下一題，<span class="kbd"
+            >R</span
+          >
+          重玩。
+        </div>
+      </section>
 
       <div class="footer">
-        小撇步：可用鍵盤 <span class="kbd">T</span> /
-        <span class="kbd">F</span> 作答，<span class="kbd">Enter</span> 下一題。
+        小提醒：選項文字含縮寫與全名，例如
+        <span class="tag">SRP：單一職責原則</span>。
       </div>
     </main>
 
     <script>
-      // 題庫（依你的清單；其中 OPC、依賴相反 為刻意設置的錯題）
+      // 題庫（5 題 × 3 選 1），answer 為正確選項索引（0/1/2）
       const QUESTIONS = [
         {
-          text: "SRP：單一職責原則",
-          isTrue: true,
+          text: "一個模組應該只有一個變動的理由。",
+          options: ["SRP：單一職責原則", "LSP：替換原則", "DIP：依賴反轉原則"],
+          answer: 0,
           explain:
-            "正確。Single Responsibility Principle：一個模組僅有一個變動理由。",
+            "這是 SRP（Single Responsibility Principle）：單一職責，一個模組只專注一件事。",
         },
         {
-          text: "OPC：開放 封閉原則",
-          isTrue: false,
+          text: "軟體應對擴充開放、對修改封閉（以擴展取代更動舊碼）。",
+          options: [
+            "OCP：開放封閉原則",
+            "ISP：介面隔離原則",
+            "SRP：單一職責原則",
+          ],
+          answer: 0,
           explain:
-            "錯誤。縮寫應為 OCP（Open–Closed Principle）。對擴充開放、對修改封閉。",
+            "這是 OCP（Open–Closed Principle）：用擴展替代改舊碼，降低回歸風險。",
         },
         {
-          text: "LSP：Liskov 替換原則",
-          isTrue: true,
+          text: "子類別必須能替代父類別而不破壞既有正確性。",
+          options: ["DIP：依賴反轉原則", "LSP：替換原則", "ISP：介面隔離原則"],
+          answer: 1,
           explain:
-            "正確。Liskov Substitution Principle：子型別必須可替換其父型別而不破壞正確性。",
+            "這是 LSP（Liskov Substitution Principle）：任何用父型別的地方都可安全替換為子型別。",
         },
         {
-          text: "ISP：介面隔離原則",
-          isTrue: true,
+          text: "不要強迫使用者依賴不需要的方法，介面應小而專注。",
+          options: [
+            "ISP：介面隔離原則",
+            "SRP：單一職責原則",
+            "OCP：開放封閉原則",
+          ],
+          answer: 0,
           explain:
-            "正確。Interface Segregation Principle：傾向建立多個專一的小介面，而非龐大雜湊介面。",
+            "這是 ISP（Interface Segregation Principle）：傾向多個專一小介面，而非巨型介面。",
         },
         {
-          text: "DIP：依賴相反原則",
-          isTrue: false,
+          text: "高層模組與低層模組都應依賴抽象，而非彼此的具體實作。",
+          options: ["DIP：依賴反轉原則", "LSP：替換原則", "SRP：單一職責原則"],
+          answer: 0,
           explain:
-            "錯誤。應為『依賴反轉原則』（Dependency Inversion Principle）：高層不依賴低層，兩者共同依賴抽象。",
+            "這是 DIP（Dependency Inversion Principle）：依賴抽象、以介面/抽象層解耦高低層。",
         },
       ];
 
-      // 遊戲狀態
-      let order = [];
-      let i = 0;
-      let score = 0;
-      let locked = false;
+      // 狀態
+      let order = [],
+        i = 0,
+        score = 0,
+        locked = false;
 
-      const elQ = document.getElementById("q");
+      // DOM
+      const elTotal = document.getElementById("total");
       const elIdx = document.getElementById("idx");
       const elScore = document.getElementById("score");
-      const elTotal = document.getElementById("total");
+      const elQ = document.getElementById("q");
+      const elOptions = document.getElementById("options");
       const elFeedback = document.getElementById("feedback");
       const elNext = document.getElementById("btn-next");
       const elRetry = document.getElementById("btn-retry");
-      const elHint = document.getElementById("hint");
-      const btnTrue = document.getElementById("btn-true");
-      const btnFalse = document.getElementById("btn-false");
 
       elTotal.textContent = QUESTIONS.length;
 
@@ -259,8 +324,6 @@
         elFeedback.style.display = "none";
         elNext.style.display = "none";
         elRetry.style.display = "none";
-        btnTrue.disabled = false;
-        btnFalse.disabled = false;
         render();
       }
 
@@ -268,17 +331,34 @@
         const q = QUESTIONS[order[i]];
         elIdx.textContent = i + 1;
         elQ.textContent = q.text;
-        elHint.textContent = "判斷上面的敘述是否正確。";
+
+        // 產生選項（同時打亂顯示順序，但保留正確索引映射）
+        elOptions.innerHTML = "";
+        const optIdx = shuffle([0, 1, 2]);
+        optIdx.forEach((displayIdx, slot) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "opt";
+          btn.textContent = `${slot + 1}. ${q.options[displayIdx]}`;
+          btn.setAttribute(
+            "aria-label",
+            `選項 ${slot + 1}：${q.options[displayIdx]}`
+          );
+          btn.onclick = () => answer(displayIdx);
+          elOptions.appendChild(btn);
+        });
+
         elFeedback.style.display = "none";
         elNext.style.display = "none";
         locked = false;
       }
 
-      function answer(userIsTrue) {
+      function answer(chosenIdx) {
         if (locked) return;
         locked = true;
+
         const q = QUESTIONS[order[i]];
-        const correct = userIsTrue === q.isTrue;
+        const correct = chosenIdx === q.answer;
         if (correct) {
           score++;
           elScore.textContent = score;
@@ -286,38 +366,39 @@
 
         elFeedback.style.display = "block";
         elFeedback.innerHTML = correct
-          ? `✅ <span class="ok">答對了！</span> ${q.explain}`
-          : `❌ <span class="bad">答錯了。</span> ${q.explain}`;
+          ? `✅ <span class="ok">答對！</span> ${q.explain}`
+          : `❌ <span class="bad">答錯。</span> ${q.explain}`;
 
-        // 到尾題就顯示總結
         if (i === order.length - 1) {
           elNext.style.display = "none";
           elRetry.style.display = "inline-block";
-          elHint.textContent = `完成！最終分數：${score} / ${QUESTIONS.length}`;
-          btnTrue.disabled = true;
-          btnFalse.disabled = true;
+          elQ.textContent += `（完成！最終分數：${score} / ${QUESTIONS.length}）`;
         } else {
           elNext.style.display = "inline-block";
         }
       }
 
-      btnTrue.addEventListener("click", () => answer(true));
-      btnFalse.addEventListener("click", () => answer(false));
       elNext.addEventListener("click", () => {
         i++;
         render();
       });
       elRetry.addEventListener("click", init);
 
-      // 鍵盤操作：T/F 作答，Enter 下一題
+      // 鍵盤操作：1/2/3 作答、Enter 下一題、R 重玩
       window.addEventListener("keydown", (e) => {
-        if (e.key === "t" || e.key === "T") {
-          answer(true);
-        } else if (e.key === "f" || e.key === "F") {
-          answer(false);
-        } else if (e.key === "Enter" && elNext.style.display !== "none") {
-          i++;
-          render();
+        const key = e.key.toLowerCase();
+        if (!locked && (key === "1" || key === "2" || key === "3")) {
+          const idxMap = { 1: 0, 2: 1, 3: 2 };
+          // 因為畫面選項已被打亂，需依顯示順序找對應的 displayIdx
+          const displayed = [...elOptions.querySelectorAll("button.opt")];
+          const btn = displayed[idxMap[key]];
+          if (btn) {
+            btn.click();
+          }
+        } else if (key === "enter" && elNext.style.display !== "none") {
+          elNext.click();
+        } else if (key === "r" && elRetry.style.display !== "none") {
+          elRetry.click();
         }
       });
 
